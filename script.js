@@ -4,11 +4,23 @@ import unsplashApiKey from './keys/keys.js';
 const imageContainer = document.getElementById('image-container');
 const loader = document.getElementById('loader');
 
+let ready = false;
+let imagesLoaded = 0;
+let totalImages = 0;
+
 let photosArray = [];
 
 // Setup unsplash
-const fetchedImageCount = 10;
+const fetchedImageCount = 30;
 const unsplashApiUrl = `https://api.unsplash.com/photos/random/?client_id=${unsplashApiKey}&count=${fetchedImageCount}`;
+
+function imageLoaded() {
+    imagesLoaded++;
+    if (imagesLoaded == totalImages) {
+        ready = true;
+        loader.hidden = true;
+    }
+}
 
 function setAttributes(element, attributes) {
     for (const key in attributes) {
@@ -17,6 +29,9 @@ function setAttributes(element, attributes) {
 }
 
 function displayPhotos() {
+    imagesLoaded = 0;
+    totalImages = photosArray.length;
+
     photosArray.forEach((photo) => {
         const anchor = document.createElement('a');
         setAttributes(anchor, {
@@ -31,6 +46,7 @@ function displayPhotos() {
             title: photo.alt_description
         });
 
+        img.addEventListener('load', imageLoaded);
         anchor.appendChild(img);
         imageContainer.appendChild(anchor);
     });
@@ -45,5 +61,12 @@ async function getPhotos() {
         
     }
 }
+
+window.addEventListener('scroll', () => {
+    if (ready && window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+        ready = false;
+        getPhotos();
+    }
+});
 
 getPhotos();
